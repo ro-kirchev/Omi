@@ -3,3 +3,7 @@ source "Kconfig.zephyr"
 config CODEC_OPUS
     bool "Opus Audio Codec Support"
     default n
+
+config TRIANGLE_V2
+    bool "Triangle V2 Support"
+    default n

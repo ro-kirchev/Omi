@@ -6,6 +6,12 @@
 #include "config.h"
 #include "audio.h"
 #include "codec.h"
+#include "button.h"
+
+#ifdef TRIANGLE_V2
+#include <zephyr/pm/pm.h>
+#include <zephyr/pm/device.h>
+#endif
 
 static void codec_handler(uint8_t *data, size_t len)
 {
@@ -24,6 +30,38 @@ void bt_ctlr_assert_handle(char *name, int type)
 		printk("Bt assert-> %s", name);
 	}
 }
+
+#ifdef TRIANGLE_V2
+static void pre_sleep_callback(void)
+{
+    printk("Preparing for deep sleep...\n");
+
+	// Disable USB
+	// const struct device *usb_dev = DEVICE_DT_GET(DT_NODELABEL(usbd));
+    // if (device_is_ready(usb_dev)) {
+    //     pm_device_action_run(usb_dev, PM_DEVICE_ACTION_SUSPEND);
+    // }
+    
+    set_led_red(false);
+    set_led_green(false);
+    set_led_blue(false);
+
+	const struct device *const cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+		if (device_is_ready(cons)) {
+			pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
+		}
+}
+
+void pm_state_exit_post_ops(enum pm_state state, uint8_t substate_id)
+{
+    // Any necessary state restoration here
+}
+
+static void button_short_press_handler(void) {
+    printk("Button short press detected!\n");
+    // Add your custom short press logic here
+}
+#endif
 
 bool is_connected = false;
 bool is_charging = false;
@@ -69,6 +107,12 @@ int main(void)
 	// Led start
 	ASSERT_OK(led_start());
 	set_led_blue(true);
+
+#ifdef TRIANGLE_V2
+	ASSERT_OK(button_init());
+    set_pre_sleep_callback(pre_sleep_callback);
+	set_button_short_press_callback(button_short_press_handler);
+#endif
 
 	// Transport start
 	ASSERT_OK(transport_start());

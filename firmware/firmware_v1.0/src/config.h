@@ -1,5 +1,10 @@
 #include <haly/nrfy_gpio.h>
 
+// Triangle V2 device config
+#if defined(CONFIG_TRIANGLE_V2)
+#define TRIANGLE_V2 1
+#endif
+
 // #define SAMPLE_RATE 16000
 #define MIC_GAIN 64
 #define MIC_IRC_PRIORITY 7
